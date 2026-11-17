@@ -63,6 +63,17 @@ def quarantine(
 
     return df, quarantine
 
+def diff_days(
+        df,
+        start_date,
+        end_date
+):
+    date_difference = df[end_date] - df[start_date]
+
+    df['date_difference'] = date_difference
+    
+    return df
+
 def output_file(
         df,
         quarantine,
@@ -98,6 +109,12 @@ silver_df, quarantine_df = quarantine(
         'Book checkout': '%d/%m/%Y', 
         'Book Returned': '%d/%m/%Y'
         }
+)
+
+silver_df = diff_days(
+    df = silver_df,
+    start_date = 'Book checkout',
+    end_date = 'Book Returned'
 )
 
 output_file(
