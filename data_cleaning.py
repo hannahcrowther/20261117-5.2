@@ -90,58 +90,61 @@ def output_file(
 
 ## SystemBook
 
-df = load_file(
-    input_file="data/03_Library Systembook.csv"
-)
 
-clean_df = clean_file(
-    df = df,
-    replacements=[
-        ('Book checkout', '"', ''),
-        ('Books', 'the kind', 'the king')
-    ]
-)
+if __name__ == "__main__":
 
-silver_df, quarantine_df = quarantine(
-    df = clean_df,
-    not_null_columns=('Id', 'Customer ID'),
-    date_columns={
-        'Book checkout': '%d/%m/%Y', 
-        'Book Returned': '%d/%m/%Y'
-        }
-)
+    raw_df = load_file(
+        input_file="data/03_Library Systembook.csv"
+    )
 
-silver_df = diff_days(
-    df = silver_df,
-    start_date = 'Book checkout',
-    end_date = 'Book Returned'
-)
+    clean_df = clean_file(
+        df = raw_df,
+        replacements=[
+            ('Book checkout', '"', ''),
+            ('Books', 'the kind', 'the king')
+        ]
+    )
 
-output_file(
-    df = silver_df,
-    quarantine = quarantine_df,
-    output_file="silver_data/library_systembook_silver.csv",
-    quarantine_file="quarantine/library_systembook.csv"
-)
+    silver_df, quarantine_df = quarantine(
+        df = clean_df,
+        not_null_columns=('Id', 'Customer ID'),
+        date_columns={
+            'Book checkout': '%d/%m/%Y', 
+            'Book Returned': '%d/%m/%Y'
+            }
+    )
+
+    silver_df = diff_days(
+        df = silver_df,
+        start_date = 'Book checkout',
+        end_date = 'Book Returned'
+    )
+
+    output_file(
+        df = silver_df,
+        quarantine = quarantine_df,
+        output_file="silver_data/library_systembook_silver.csv",
+        quarantine_file="quarantine/library_systembook.csv"
+    )
 
 
-## SystemCustomer
+    ## SystemCustomer
 
-df =load_file(
-    input_file="data/03_Library SystemCustomers.csv"
-)
+    raw_df =load_file(
+        input_file="data/03_Library SystemCustomers.csv"
+    )
 
-silver_df, quarantine_df = quarantine(
-    df = df,
-    not_null_columns=('Customer ID', 'Customer Name')
-)
+    silver_df, quarantine_df = quarantine(
+        df = raw_df,
+        not_null_columns=('Customer ID', 'Customer Name')
+    )
 
-output_file(
-    df = silver_df,
-    quarantine = quarantine_df,
-    output_file="silver_data/library_systemcustomers_silver.csv",
-    quarantine_file="quarantine/library_systemcustomers.csv"
-)
+    output_file(
+        df = silver_df,
+        quarantine = quarantine_df,
+        output_file="silver_data/library_systemcustomers_silver.csv",
+        quarantine_file="quarantine/library_systemcustomers.csv"
+    )
 
 
 
