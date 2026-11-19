@@ -1,5 +1,6 @@
 import pandas as pd
 import os.path
+from datetime import datetime
 
 ## Create function for loading and cleaning a file
 
@@ -76,9 +77,9 @@ def diff_days(
 
 def output_file(
         df,
-        quarantine,
         output_file,
-        quarantine_file
+        quarantine=None,
+        quarantine_file=None
 ):
     if quarantine_file and not quarantine.empty:
         quarantine.to_csv(quarantine_file, index=False)
@@ -90,60 +91,104 @@ def output_file(
 
 ## SystemBook
 
+if __name__ == "__main__":
+
+    start_time = datetime.now()
+
+    raw_df = load_file(
+        input_file="data/03_Library Systembook.csv"
+    )
+
+    rows_processed = len(raw_df)
+
+    print(raw_df)
+
+    clean_df = clean_file(
+        df = raw_df,
+        replacements=[
+            ('Book checkout', '"', ''),
+            ('Books', 'the kind', 'the king')
+        ]
+    )
+
+    silver_df, quarantine_df = quarantine(
+        df = clean_df,
+        not_null_columns=('Id', 'Customer ID'),
+        date_columns={
+            'Book checkout': '%d/%m/%Y', 
+            'Book Returned': '%d/%m/%Y'
+            }
+    )
+
+    error_count = len(quarantine_df)
+
+    silver_df = diff_days(
+        df = silver_df,
+        start_date = 'Book checkout',
+        end_date = 'Book Returned'
+    )
+
+    output_file(
+        df = silver_df,
+        quarantine = quarantine_df,
+        output_file="silver_data/library_systembook_silver.csv",
+        quarantine_file="quarantine/library_systembook.csv"
+    )
+
+    end_time = datetime.now()
+
+    duration = (end_time - start_time).total_seconds()
+
+    log = pd.DataFrame([{
+        'Total rows' : rows_processed, 
+        'Error rows': error_count,
+        'Duration' : duration
+        }])
+
+    output_file(
+        df = log,
+        output_file="log/library_systembook_logs.csv"
+    )
+
+    ## SystemCustomer
+
+    start_time = datetime.now()
+
+    raw_df =load_file(
+        input_file="data/03_Library SystemCustomers.csv"
+    )
+
+    rows_processed = len(raw_df)
+
+    silver_df, quarantine_df = quarantine(
+        df = raw_df,
+        not_null_columns=('Customer ID', 'Customer Name')
+    )
+
+    error_count = len(quarantine_df)
+
+    output_file(
+        df = silver_df,
+        quarantine = quarantine_df,
+        output_file="silver_data/library_systemcustomers_silver.csv",
+        quarantine_file="quarantine/library_systemcustomers.csv"
+    )
+
+    end_time = datetime.now()
+
+    duration = (end_time - start_time).total_seconds()
+
+    log = pd.DataFrame([{
+        'Total rows' : rows_processed, 
+        'Error rows': error_count,
+        'Duration': duration
+        }])
 
 
-raw_df = load_file(
-    input_file="data/03_Library Systembook.csv"
-)
-
-clean_df = clean_file(
-    df = raw_df,
-    replacements=[
-        ('Book checkout', '"', ''),
-        ('Books', 'the kind', 'the king')
-    ]
-)
-
-silver_df, quarantine_df = quarantine(
-    df = clean_df,
-    not_null_columns=('Id', 'Customer ID'),
-    date_columns={
-        'Book checkout': '%d/%m/%Y', 
-        'Book Returned': '%d/%m/%Y'
-        }
-)
-
-silver_df = diff_days(
-    df = silver_df,
-    start_date = 'Book checkout',
-    end_date = 'Book Returned'
-)
-
-output_file(
-    df = silver_df,
-    quarantine = quarantine_df,
-    output_file="silver_data/library_systembook_silver.csv",
-    quarantine_file="quarantine/library_systembook.csv"
-)
-
-
-## SystemCustomer
-
-raw_df =load_file(
-    input_file="data/03_Library SystemCustomers.csv"
-)
-
-silver_df, quarantine_df = quarantine(
-    df = raw_df,
-    not_null_columns=('Customer ID', 'Customer Name')
-)
-
-output_file(
-    df = silver_df,
-    quarantine = quarantine_df,
-    output_file="silver_data/library_systemcustomers_silver.csv",
-    quarantine_file="quarantine/library_systemcustomers.csv"
-)
+    output_file(
+        df = log,
+        output_file="log/library_systemcustomers_logs.csv"
+    )
 
 
 
